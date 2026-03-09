@@ -108,9 +108,6 @@
   .badge-new { background: #d0ebff; color: #1971c2; }
   .badge-promo { background: #ffe0e0; color: #c92a2a; }
   .badge-engage { background: #e8dff5; color: #7048e8; }
-  .badge-reservation { background: #fff4e6; color: #d9480f; }
-  .badge-waiting { background: #e3fafc; color: #0c8599; }
-  .badge-post { background: #f3f0ff; color: #7048e8; }
 
   /* type select in edit mode */
   .type-select {
@@ -214,32 +211,6 @@
     <table class="data-table" id="monthly-plan"></table>
   </div>
 
-  <!-- 트랜잭션 알림 유형 -->
-  <div class="section">
-    <div class="section-header">
-      <div>
-        <div class="section-title">트랜잭션 알림 유형</div>
-        <div class="section-desc">유저 행동 트리거 기반 · 자동 발송</div>
-      </div>
-      <div class="btn-group">
-        <button class="btn" onclick="toggleEdit('txn-types')">수정</button>
-        <button class="btn" onclick="downloadCSV('txn-types', '트랜잭션_알림_유형')">CSV 다운로드</button>
-      </div>
-    </div>
-    <table class="data-table" id="txn-types"></table>
-  </div>
-
-  <!-- 트랜잭션 팁 -->
-  <div class="section">
-    <div class="section-header">
-      <div>
-        <div class="section-title">전체 발송 시 팁</div>
-        <div class="section-desc">트랜잭션 알림</div>
-      </div>
-    </div>
-    <div class="tip-grid" id="transaction-tips"></div>
-  </div>
-
 </div>
 
 <div class="toast" id="toast"></div>
@@ -316,26 +287,6 @@ const DATA = {
       ['2월', '프로모션', '봄 시즌 예고 이벤트', '시즌 전환'],
     ]
   },
-  transactionTypes: {
-    headers: ['유형', '설명', '트리거 시점', '예시', '비고'],
-    rows: [
-      ['예약 확정', '예약 완료 즉시 발송', '예약 완료 시', '예약이 확정되었습니다 — 일시/매장/인원 안내', '필수 알림'],
-      ['예약 리마인드', '방문 전 리마인드', 'D-1 (전날)', '내일 예약 잊지 마세요 — 매장명/시간/위치 안내', '노쇼 방지'],
-      ['예약 변경/취소', '예약 상태 변경 안내', '변경 또는 취소 시', '예약이 변경(취소)되었습니다 — 변경 내역 안내', '필수 알림'],
-      ['웨이팅 접수', '원격 웨이팅 등록 완료', '웨이팅 등록 시', '웨이팅이 접수되었습니다 — 현재 대기 N팀', '필수 알림'],
-      ['웨이팅 순서 임박', '입장 순서가 가까워질 때', '내 앞 2~3팀 시', '곧 입장입니다 — 매장으로 이동해주세요', '이탈 방지'],
-      ['웨이팅 호출', '내 차례 도착', '내 순서 시', '지금 입장 가능합니다 — N분 내 미도착 시 자동 취소', '필수 알림'],
-      ['방문 후 리뷰 유도', '방문 완료 후 리뷰 요청', '방문 D+1', '어제 방문은 어떠셨나요? 리뷰를 남겨주세요', '인게이지먼트'],
-      ['방문 후 재방문 유도', '비슷한 매장 추천', '방문 D+3~7', '이 매장도 좋아하실 것 같아요 — 같은 지역/카테고리 추천', '인게이지먼트'],
-    ]
-  },
-  transactionTips: [
-    ['발송 타이밍', '트리거 시점에 맞춰 즉시 또는 지정 시간에 자동 발송'],
-    ['필수 vs 선택', '예약 확정/변경/웨이팅 호출은 필수, 리뷰·재방문 유도는 선택'],
-    ['다국어', '글로벌 유저 대상 — 유저 설정 언어에 맞춰 발송 (EN 기본)'],
-    ['딥링크', '푸시 탭 시 예약 상세/웨이팅 현황/리뷰 작성 페이지로 바로 이동'],
-    ['빈도 제한', '방문 후 알림은 리뷰 1회 + 추천 1회 이내로 제한'],
-  ]
 };
 
 // ── BADGE ──
@@ -345,9 +296,6 @@ const BADGE_MAP = {
   '신규 입점·신규 기능 알림': 'badge-new', '신규': 'badge-new',
   '프로모션/이벤트': 'badge-promo', '프로모션': 'badge-promo',
   '리인게이지먼트 (재방문 유도)': 'badge-engage',
-  '예약 확정': 'badge-reservation', '예약 리마인드': 'badge-reservation', '예약 변경/취소': 'badge-reservation',
-  '웨이팅 접수': 'badge-waiting', '웨이팅 순서 임박': 'badge-waiting', '웨이팅 호출': 'badge-waiting',
-  '방문 후 리뷰 유도': 'badge-post', '방문 후 재방문 유도': 'badge-post',
 };
 function badge(t) { return `<span class="badge ${BADGE_MAP[t]||''}">${t}</span>`; }
 
@@ -391,7 +339,7 @@ const editStates = {};
 function toggleEdit(id) {
   const table = document.getElementById(id);
   const isEditing = editStates[id];
-  const dataKey = { 'mkt-types': 'marketingTypes', 'monthly-plan': 'monthlyPlan', 'txn-types': 'transactionTypes' }[id];
+  const dataKey = { 'mkt-types': 'marketingTypes', 'monthly-plan': 'monthlyPlan',  }[id];
   const data = DATA[dataKey];
   const isMonthly = id === 'monthly-plan';
 
@@ -464,7 +412,7 @@ function toggleEdit(id) {
 }
 
 function deleteRow(id, rowIndex) {
-  const dataKey = { 'mkt-types': 'marketingTypes', 'monthly-plan': 'monthlyPlan', 'txn-types': 'transactionTypes' }[id];
+  const dataKey = { 'mkt-types': 'marketingTypes', 'monthly-plan': 'monthlyPlan',  }[id];
   const data = DATA[dataKey];
   const isMonthly = id === 'monthly-plan';
 
@@ -509,7 +457,7 @@ function addRow(id) {
 
 // ── CSV DOWNLOAD ──
 function downloadCSV(id, filename) {
-  const dataKey = { 'mkt-types': 'marketingTypes', 'monthly-plan': 'monthlyPlan', 'txn-types': 'transactionTypes' }[id];
+  const dataKey = { 'mkt-types': 'marketingTypes', 'monthly-plan': 'monthlyPlan',  }[id];
   const data = DATA[dataKey];
   let csv = data.headers.map(h => `"${h}"`).join(',') + '\n';
   data.rows.forEach(r => {
@@ -536,8 +484,6 @@ function showToast(msg) {
 renderTable('mkt-types', DATA.marketingTypes);
 renderTips('marketing-tips', DATA.marketingTips);
 renderTable('monthly-plan', DATA.monthlyPlan, { monthGroup: true });
-renderTable('txn-types', DATA.transactionTypes);
-renderTips('transaction-tips', DATA.transactionTips);
 </script>
 
 </body>
