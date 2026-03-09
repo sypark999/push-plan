@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CatchTable Global — App Push Plan</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #f5f6fa;
+    color: #2d3436;
+    line-height: 1.6;
+  }
+  .header {
+    background: #fff;
+    border-bottom: 1px solid #e9ecef;
+    padding: 28px 40px;
+  }
+  .header h1 { font-size: 22px; font-weight: 700; color: #1a1a2e; }
+  .header p { font-size: 13px; color: #868e96; margin-top: 4px; }
+  .container { max-width: 1200px; margin: 0 auto; padding: 28px 24px; }
+
+  .section {
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid #e9ecef;
+    padding: 28px;
+    margin-bottom: 24px;
+  }
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+  }
+  .section-title { font-size: 16px; font-weight: 700; color: #1a1a2e; margin-bottom: 4px; }
+  .section-desc { font-size: 12px; color: #868e96; }
+
+  .btn {
+    font-size: 11px;
+    padding: 5px 12px;
+    border-radius: 6px;
+    border: 1px solid #dee2e6;
+    background: #fff;
+    color: #495057;
+    cursor: pointer;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .btn:hover { background: #f8f9fa; }
+  .btn-primary { background: #1a1a2e; color: #fff; border-color: #1a1a2e; }
+  .btn-primary:hover { background: #2d2d44; }
+  .btn-danger { color: #c92a2a; border-color: #ffc9c9; }
+  .btn-danger:hover { background: #fff5f5; }
+  .btn-group { display: flex; gap: 6px; flex-shrink: 0; }
+
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .data-table thead th {
+    background: #f8f9fa;
+    font-weight: 600;
+    color: #495057;
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 2px solid #dee2e6;
+    white-space: nowrap;
+  }
+  .data-table tbody td {
+    padding: 9px 12px;
+    text-align: left;
+    border-bottom: 1px solid #f1f3f5;
+  }
+  .data-table tbody tr:hover td { background: #f8f9fa; }
+
+  /* editable cell */
+  .data-table td[contenteditable="true"] {
+    outline: none;
+    border: 1px solid #d0ebff;
+    background: #f0f7ff !important;
+    border-radius: 2px;
+  }
+  .data-table.editing td { cursor: text; }
+  .data-table.editing tr:hover td { background: #f0f7ff; }
+
+  /* month group */
+  .month-group td {
+    background: #f0f1f3 !important;
+    font-weight: 700;
+    color: #1a1a2e;
+    padding: 8px 12px;
+    border-bottom: 1px solid #dee2e6;
+  }
+
+  /* type badges */
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .badge-season { background: #fff3bf; color: #e67700; }
+  .badge-trend { background: #d3f9d8; color: #2b8a3e; }
+  .badge-new { background: #d0ebff; color: #1971c2; }
+  .badge-promo { background: #ffe0e0; color: #c92a2a; }
+  .badge-engage { background: #e8dff5; color: #7048e8; }
+  .badge-reservation { background: #fff4e6; color: #d9480f; }
+  .badge-waiting { background: #e3fafc; color: #0c8599; }
+  .badge-post { background: #f3f0ff; color: #7048e8; }
+
+  /* type select in edit mode */
+  .type-select {
+    font-size: 11px;
+    padding: 2px 6px;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    background: #fff;
+    font-weight: 600;
+  }
+
+  /* tip box */
+  .tip-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 12px;
+  }
+  .tip-card {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 16px;
+  }
+  .tip-card strong {
+    display: block;
+    font-size: 13px;
+    color: #1a1a2e;
+    margin-bottom: 4px;
+  }
+  .tip-card span {
+    font-size: 12px;
+    color: #868e96;
+  }
+
+  /* row actions in edit mode */
+  .row-actions { white-space: nowrap; }
+  .row-actions button {
+    font-size: 11px; padding: 2px 6px; border: none; background: none;
+    cursor: pointer; color: #868e96; border-radius: 3px;
+  }
+  .row-actions button:hover { background: #f1f3f5; color: #c92a2a; }
+
+  /* toast */
+  .toast {
+    position: fixed; bottom: 24px; right: 24px;
+    background: #1a1a2e; color: #fff; padding: 12px 20px;
+    border-radius: 8px; font-size: 13px; font-weight: 500;
+    opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 100;
+  }
+  .toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>CatchTable Global — App Push Plan</h1>
+  <p>앱푸시 유형 분류 및 연간 발송 플랜</p>
+</div>
+
+<div class="container">
+
+  <!-- 마케팅 푸시 유형 -->
+  <div class="section">
+    <div class="section-header">
+      <div>
+        <div class="section-title">마케팅 푸시 유형</div>
+        <div class="section-desc">전체 발송 가능 · 세그먼트 불필요</div>
+      </div>
+      <div class="btn-group">
+        <button class="btn" onclick="toggleEdit('mkt-types')">수정</button>
+        <button class="btn" onclick="downloadCSV('mkt-types', '마케팅_푸시_유형')">CSV 다운로드</button>
+      </div>
+    </div>
+    <table class="data-table" id="mkt-types"></table>
+  </div>
+
+  <!-- 마케팅 푸시 팁 -->
+  <div class="section">
+    <div class="section-header">
+      <div>
+        <div class="section-title">전체 발송 시 팁</div>
+        <div class="section-desc">마케팅 푸시</div>
+      </div>
+    </div>
+    <div class="tip-grid" id="marketing-tips"></div>
+  </div>
+
+  <!-- 월별 플랜 -->
+  <div class="section">
+    <div class="section-header">
+      <div>
+        <div class="section-title">월별 앱푸시 플랜</div>
+        <div class="section-desc">주 1회 발송 · 연 48건</div>
+      </div>
+      <div class="btn-group">
+        <button class="btn" onclick="toggleEdit('monthly-plan')">수정</button>
+        <button class="btn" onclick="addRow('monthly-plan')">행 추가</button>
+        <button class="btn" onclick="downloadCSV('monthly-plan', '월별_앱푸시_플랜')">CSV 다운로드</button>
+      </div>
+    </div>
+    <table class="data-table" id="monthly-plan"></table>
+  </div>
+
+  <!-- 트랜잭션 알림 유형 -->
+  <div class="section">
+    <div class="section-header">
+      <div>
+        <div class="section-title">트랜잭션 알림 유형</div>
+        <div class="section-desc">유저 행동 트리거 기반 · 자동 발송</div>
+      </div>
+      <div class="btn-group">
+        <button class="btn" onclick="toggleEdit('txn-types')">수정</button>
+        <button class="btn" onclick="downloadCSV('txn-types', '트랜잭션_알림_유형')">CSV 다운로드</button>
+      </div>
+    </div>
+    <table class="data-table" id="txn-types"></table>
+  </div>
+
+  <!-- 트랜잭션 팁 -->
+  <div class="section">
+    <div class="section-header">
+      <div>
+        <div class="section-title">전체 발송 시 팁</div>
+        <div class="section-desc">트랜잭션 알림</div>
+      </div>
+    </div>
+    <div class="tip-grid" id="transaction-tips"></div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── DATA ──
+const DATA = {
+  marketingTypes: {
+    headers: ['유형', '설명', '예시', '전체 발송 적합도', '비고'],
+    rows: [
+      ['시즌/시의성 콘텐츠', '모든 유저에게 해당되는 시즌 큐레이션', '벚꽃 시즌 맛집 / 크리스마스 다이닝 / 한국 공휴일 가이드', '높음', ''],
+      ['인기/트렌드 기반 큐레이션', '전체 유저 데이터 기반 인기 콘텐츠', '주간 인기 레스토랑 / 지역별 트렌드 / 카테고리별 인기', '높음', '세그먼트 불필요'],
+      ['신규 입점·신규 기능 알림', '새 레스토랑 또는 기능 안내', '신규 입점 소식 / 새 기능 출시 / 앱 업데이트', '높음', ''],
+      ['프로모션/이벤트', '전체 대상 혜택 안내', '쿠폰·할인 이벤트 / 첫 예약 혜택 / 친구 초대 캠페인', '높음', ''],
+      ['리인게이지먼트 (재방문 유도)', '휴면 유저 재방문 유도', '신규 레스토랑 안내 / 업데이트 알림', '보통', '세그먼트 없으면 활성 유저에겐 어색할 수 있음'],
+    ]
+  },
+  marketingTips: [
+    ['보편적 관심사 중심', '특정 취향(일식·파인다인 등)보다 지역·시즌·인기 기반이 안전'],
+    ['빈도 조절', '주 1회 발송 권장 (세그먼트 없는 경우)'],
+    ['시간대', '글로벌 유저 = 한국 거주 기준 점심 전(11시)이나 저녁 전(17시)이 효과적'],
+    ['CTA 명확히', 'Book now / See the list 등 행동 유도 포함'],
+  ],
+  monthlyPlan: {
+    headers: ['월', '유형', '소재 방향', '비고'],
+    rows: [
+      ['3월', '시즌', '벚꽃 시즌 다이닝', '봄 시작'],
+      ['3월', '트렌드', '주간 인기 레스토랑', '예약 데이터 기반'],
+      ['3월', '신규', '신규 입점 레스토랑', '월간 신규'],
+      ['3월', '트렌드', '지역별 인기 (강남)', '지역 트렌드'],
+      ['4월', '시즌', '야외/루프탑 다이닝', '봄 날씨'],
+      ['4월', '트렌드', '카테고리별 인기 (한식BBQ 등)', '카테고리 트렌드'],
+      ['4월', '프로모션', '첫 예약 혜택 리마인드', '신규 유저 전환'],
+      ['4월', '트렌드', '지역별 인기 (이태원)', '지역 트렌드'],
+      ['5월', '시즌', '골든위크 맛집', '일본 관광객 시즌'],
+      ['5월', '트렌드', '주간 인기 레스토랑', '예약 데이터 기반'],
+      ['5월', '신규', '신규 입점 레스토랑', '월간 신규'],
+      ['5월', '시즌', '가정의 달 다이닝', '어버이날/어린이날'],
+      ['6월', '시즌', '장마 시즌 맛집', '장마철'],
+      ['6월', '트렌드', '월간 인기 레스토랑', '예약 데이터 기반'],
+      ['6월', '트렌드', '지역별 인기 (홍대)', '지역 트렌드'],
+      ['6월', '신규', '신규 입점 레스토랑', '월간 신규'],
+      ['7월', '시즌', '여름 시즌 메뉴', '냉면/빙수 등'],
+      ['7월', '트렌드', '주간 인기 레스토랑', '예약 데이터 기반'],
+      ['7월', '시즌', '여름 밤 다이닝', '루프탑/심야'],
+      ['7월', '프로모션', '여름 특별 이벤트', '시즌 프로모션'],
+      ['8월', '시즌', '휴가 시즌 다이닝', '여름휴가'],
+      ['8월', '트렌드', '지역별 인기 (성수)', '지역 트렌드'],
+      ['8월', '신규', '신규 입점 레스토랑', '월간 신규'],
+      ['8월', '트렌드', '월간 인기 레스토랑', '예약 데이터 기반'],
+      ['9월', '시즌', '추석 연휴 다이닝', '추석'],
+      ['9월', '트렌드', '가을 시즌 전환 메뉴', '시즌 전환'],
+      ['9월', '트렌드', '주간 인기 레스토랑', '예약 데이터 기반'],
+      ['9월', '신규', '신규 입점 레스토랑', '월간 신규'],
+      ['10월', '시즌', '가을 미식 페스티벌', '가을 제철'],
+      ['10월', '트렌드', '주간 인기 레스토랑', '예약 데이터 기반'],
+      ['10월', '트렌드', '지역별 인기 (강남)', '지역 트렌드'],
+      ['10월', '프로모션', '친구 초대 캠페인', '바이럴'],
+      ['11월', '시즌', '겨울 따뜻한 메뉴', '탕/전골 등'],
+      ['11월', '트렌드', '월간 인기 레스토랑', '예약 데이터 기반'],
+      ['11월', '신규', '신규 입점 레스토랑', '월간 신규'],
+      ['11월', '시즌', '연말 예약 오픈 안내', '얼리버드'],
+      ['12월', '시즌', '크리스마스 다이닝', '크리스마스'],
+      ['12월', '트렌드', '주간 인기 레스토랑', '예약 데이터 기반'],
+      ['12월', '시즌', '연말 송년 모임 맛집', '연말'],
+      ['12월', '트렌드', '연간 인기 정리', '연말 리뷰'],
+      ['1월', '시즌', '신년 다이닝', '새해'],
+      ['1월', '트렌드', '겨울 인기 메뉴', '겨울 트렌드'],
+      ['1월', '신규', '신규 입점 레스토랑', '월간 신규'],
+      ['1월', '트렌드', '주간 인기 레스토랑', '예약 데이터 기반'],
+      ['2월', '시즌', '발렌타인 데이트', '발렌타인'],
+      ['2월', '트렌드', '월간 인기 레스토랑', '예약 데이터 기반'],
+      ['2월', '신규', '신규 입점 레스토랑', '월간 신규'],
+      ['2월', '프로모션', '봄 시즌 예고 이벤트', '시즌 전환'],
+    ]
+  },
+  transactionTypes: {
+    headers: ['유형', '설명', '트리거 시점', '예시', '비고'],
+    rows: [
+      ['예약 확정', '예약 완료 즉시 발송', '예약 완료 시', '예약이 확정되었습니다 — 일시/매장/인원 안내', '필수 알림'],
+      ['예약 리마인드', '방문 전 리마인드', 'D-1 (전날)', '내일 예약 잊지 마세요 — 매장명/시간/위치 안내', '노쇼 방지'],
+      ['예약 변경/취소', '예약 상태 변경 안내', '변경 또는 취소 시', '예약이 변경(취소)되었습니다 — 변경 내역 안내', '필수 알림'],
+      ['웨이팅 접수', '원격 웨이팅 등록 완료', '웨이팅 등록 시', '웨이팅이 접수되었습니다 — 현재 대기 N팀', '필수 알림'],
+      ['웨이팅 순서 임박', '입장 순서가 가까워질 때', '내 앞 2~3팀 시', '곧 입장입니다 — 매장으로 이동해주세요', '이탈 방지'],
+      ['웨이팅 호출', '내 차례 도착', '내 순서 시', '지금 입장 가능합니다 — N분 내 미도착 시 자동 취소', '필수 알림'],
+      ['방문 후 리뷰 유도', '방문 완료 후 리뷰 요청', '방문 D+1', '어제 방문은 어떠셨나요? 리뷰를 남겨주세요', '인게이지먼트'],
+      ['방문 후 재방문 유도', '비슷한 매장 추천', '방문 D+3~7', '이 매장도 좋아하실 것 같아요 — 같은 지역/카테고리 추천', '인게이지먼트'],
+    ]
+  },
+  transactionTips: [
+    ['발송 타이밍', '트리거 시점에 맞춰 즉시 또는 지정 시간에 자동 발송'],
+    ['필수 vs 선택', '예약 확정/변경/웨이팅 호출은 필수, 리뷰·재방문 유도는 선택'],
+    ['다국어', '글로벌 유저 대상 — 유저 설정 언어에 맞춰 발송 (EN 기본)'],
+    ['딥링크', '푸시 탭 시 예약 상세/웨이팅 현황/리뷰 작성 페이지로 바로 이동'],
+    ['빈도 제한', '방문 후 알림은 리뷰 1회 + 추천 1회 이내로 제한'],
+  ]
+};
+
+// ── BADGE ──
+const BADGE_MAP = {
+  '시즌/시의성 콘텐츠': 'badge-season', '시즌': 'badge-season',
+  '인기/트렌드 기반 큐레이션': 'badge-trend', '트렌드': 'badge-trend',
+  '신규 입점·신규 기능 알림': 'badge-new', '신규': 'badge-new',
+  '프로모션/이벤트': 'badge-promo', '프로모션': 'badge-promo',
+  '리인게이지먼트 (재방문 유도)': 'badge-engage',
+  '예약 확정': 'badge-reservation', '예약 리마인드': 'badge-reservation', '예약 변경/취소': 'badge-reservation',
+  '웨이팅 접수': 'badge-waiting', '웨이팅 순서 임박': 'badge-waiting', '웨이팅 호출': 'badge-waiting',
+  '방문 후 리뷰 유도': 'badge-post', '방문 후 재방문 유도': 'badge-post',
+};
+function badge(t) { return `<span class="badge ${BADGE_MAP[t]||''}">${t}</span>`; }
+
+// ── PLAN TYPE OPTIONS (for select dropdown) ──
+const PLAN_TYPES = ['시즌', '트렌드', '신규', '프로모션'];
+
+// ── RENDER ──
+function renderTable(id, data, opts = {}) {
+  const table = document.getElementById(id);
+  const { monthGroup } = opts;
+  let html = '<thead><tr>';
+  data.headers.forEach(h => { html += `<th>${h}</th>`; });
+  html += '</tr></thead><tbody>';
+
+  let prevMonth = '';
+  data.rows.forEach((r, ri) => {
+    if (monthGroup && r[0] !== prevMonth && r[0]) {
+      html += `<tr class="month-group"><td colspan="${data.headers.length}">${r[0]}</td></tr>`;
+      prevMonth = r[0];
+    }
+    html += `<tr data-row="${ri}">`;
+    r.forEach((c, ci) => {
+      if (ci === 0 && monthGroup) html += `<td data-col="${ci}">${c}</td>`;
+      else if ((ci === 0 && !monthGroup) || (ci === 1 && monthGroup)) html += `<td data-col="${ci}">${badge(c)}</td>`;
+      else html += `<td data-col="${ci}">${c}</td>`;
+    });
+    html += '</tr>';
+  });
+  html += '</tbody>';
+  table.innerHTML = html;
+}
+
+function renderTips(id, tips) {
+  const el = document.getElementById(id);
+  el.innerHTML = tips.map(t => `<div class="tip-card"><strong>${t[0]}</strong><span>${t[1]}</span></div>`).join('');
+}
+
+// ── EDIT MODE ──
+const editStates = {};
+
+function toggleEdit(id) {
+  const table = document.getElementById(id);
+  const isEditing = editStates[id];
+  const dataKey = { 'mkt-types': 'marketingTypes', 'monthly-plan': 'monthlyPlan', 'txn-types': 'transactionTypes' }[id];
+  const data = DATA[dataKey];
+  const isMonthly = id === 'monthly-plan';
+
+  if (isEditing) {
+    // Save: read from DOM back to DATA
+    const tbody = table.querySelector('tbody');
+    const dataRows = tbody.querySelectorAll('tr:not(.month-group)');
+    dataRows.forEach((tr, ri) => {
+      tr.querySelectorAll('td').forEach(td => {
+        const ci = parseInt(td.dataset.col);
+        if (ci === undefined || isNaN(ci)) return;
+        const select = td.querySelector('select');
+        if (select) {
+          data.rows[ri][ci] = select.value;
+        } else {
+          data.rows[ri][ci] = td.textContent.trim();
+        }
+      });
+      // remove action column
+      const actionTd = tr.querySelector('.row-actions');
+      if (actionTd) actionTd.remove();
+    });
+    // Re-render
+    renderTable(id, data, { monthGroup: isMonthly });
+    table.classList.remove('editing');
+    editStates[id] = false;
+    showToast('저장 완료');
+  } else {
+    // Enter edit mode
+    table.classList.add('editing');
+    const tbody = table.querySelector('tbody');
+    const dataRows = tbody.querySelectorAll('tr:not(.month-group)');
+    // Add action header
+    const thead = table.querySelector('thead tr');
+    const actionTh = document.createElement('th');
+    actionTh.textContent = '';
+    actionTh.style.width = '40px';
+    thead.appendChild(actionTh);
+
+    dataRows.forEach((tr, ri) => {
+      tr.querySelectorAll('td').forEach(td => {
+        const ci = parseInt(td.dataset.col);
+        if (ci === undefined || isNaN(ci)) return;
+        // Type column: dropdown
+        const isTypeCol = (isMonthly && ci === 1) || (!isMonthly && ci === 0);
+        if (isTypeCol && isMonthly) {
+          const cur = data.rows[ri][ci];
+          td.innerHTML = `<select class="type-select" data-col="${ci}">${PLAN_TYPES.map(t => `<option${t===cur?' selected':''}>${t}</option>`).join('')}</select>`;
+        } else {
+          td.contentEditable = 'true';
+          // Remove badge wrapper for display
+          const badgeEl = td.querySelector('.badge');
+          if (badgeEl) td.textContent = badgeEl.textContent;
+        }
+      });
+      // Add delete button
+      const actionTd = document.createElement('td');
+      actionTd.className = 'row-actions';
+      actionTd.innerHTML = `<button onclick="deleteRow('${id}', ${ri})" title="삭제">✕</button>`;
+      tr.appendChild(actionTd);
+    });
+    editStates[id] = true;
+    showToast('수정 모드 — 셀을 클릭해서 편집하세요');
+  }
+
+  // Update button text
+  const btn = table.closest('.section').querySelector('.btn');
+  btn.textContent = editStates[id] ? '저장' : '수정';
+  if (editStates[id]) { btn.classList.add('btn-primary'); } else { btn.classList.remove('btn-primary'); }
+}
+
+function deleteRow(id, rowIndex) {
+  const dataKey = { 'mkt-types': 'marketingTypes', 'monthly-plan': 'monthlyPlan', 'txn-types': 'transactionTypes' }[id];
+  const data = DATA[dataKey];
+  const isMonthly = id === 'monthly-plan';
+
+  // First save current edits
+  const table = document.getElementById(id);
+  const tbody = table.querySelector('tbody');
+  const dataRows = tbody.querySelectorAll('tr:not(.month-group)');
+  dataRows.forEach((tr, ri) => {
+    tr.querySelectorAll('td').forEach(td => {
+      const ci = parseInt(td.dataset.col);
+      if (ci === undefined || isNaN(ci)) return;
+      const select = td.querySelector('select');
+      if (select) data.rows[ri][ci] = select.value;
+      else if (td.contentEditable === 'true') data.rows[ri][ci] = td.textContent.trim();
+    });
+  });
+
+  data.rows.splice(rowIndex, 1);
+  editStates[id] = false;
+  renderTable(id, data, { monthGroup: isMonthly });
+  // Re-enter edit mode
+  toggleEdit(id);
+  showToast('행 삭제됨');
+}
+
+function addRow(id) {
+  const dataKey = { 'monthly-plan': 'monthlyPlan' }[id];
+  if (!dataKey) return;
+  const data = DATA[dataKey];
+  const isMonthly = id === 'monthly-plan';
+
+  // If in edit mode, save first
+  if (editStates[id]) {
+    toggleEdit(id); // save
+  }
+
+  data.rows.push(['', '시즌', '', '']);
+  renderTable(id, data, { monthGroup: isMonthly });
+  toggleEdit(id); // enter edit mode
+  showToast('새 행 추가됨 — 내용을 입력하세요');
+}
+
+// ── CSV DOWNLOAD ──
+function downloadCSV(id, filename) {
+  const dataKey = { 'mkt-types': 'marketingTypes', 'monthly-plan': 'monthlyPlan', 'txn-types': 'transactionTypes' }[id];
+  const data = DATA[dataKey];
+  let csv = data.headers.map(h => `"${h}"`).join(',') + '\n';
+  data.rows.forEach(r => {
+    csv += r.map(c => `"${c.replace(/"/g, '""')}"`).join(',') + '\n';
+  });
+
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `${filename}.csv`;
+  link.click();
+  showToast(`${filename}.csv 다운로드 완료`);
+}
+
+// ── TOAST ──
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2000);
+}
+
+// ── INIT ──
+renderTable('mkt-types', DATA.marketingTypes);
+renderTips('marketing-tips', DATA.marketingTips);
+renderTable('monthly-plan', DATA.monthlyPlan, { monthGroup: true });
+renderTable('txn-types', DATA.transactionTypes);
+renderTips('transaction-tips', DATA.transactionTips);
+</script>
+
+</body>
+</html>
