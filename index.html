@@ -86,39 +86,6 @@
   .data-table.editing td { cursor: text; }
   .data-table.editing tr:hover td { background: #f0f7ff; }
 
-  /* month group */
-  .month-group td {
-    background: #f0f1f3 !important;
-    font-weight: 700;
-    color: #1a1a2e;
-    padding: 8px 12px;
-    border-bottom: 1px solid #dee2e6;
-  }
-
-  /* type badges */
-  .badge {
-    display: inline-block;
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-size: 11px;
-    font-weight: 600;
-  }
-  .badge-season { background: #fff3bf; color: #e67700; }
-  .badge-trend { background: #d3f9d8; color: #2b8a3e; }
-  .badge-new { background: #d0ebff; color: #1971c2; }
-  .badge-promo { background: #ffe0e0; color: #c92a2a; }
-  .badge-engage { background: #e8dff5; color: #7048e8; }
-
-  /* type select in edit mode */
-  .type-select {
-    font-size: 11px;
-    padding: 2px 6px;
-    border: 1px solid #dee2e6;
-    border-radius: 4px;
-    background: #fff;
-    font-weight: 600;
-  }
-
   /* tip box */
   .tip-grid {
     display: grid;
@@ -142,14 +109,6 @@
     color: #868e96;
   }
 
-  /* row actions in edit mode */
-  .row-actions { white-space: nowrap; }
-  .row-actions button {
-    font-size: 11px; padding: 2px 6px; border: none; background: none;
-    cursor: pointer; color: #868e96; border-radius: 3px;
-  }
-  .row-actions button:hover { background: #f1f3f5; color: #c92a2a; }
-
   /* toast */
   .toast {
     position: fixed; bottom: 24px; right: 24px;
@@ -164,24 +123,54 @@
 
 <div class="header">
   <h1>CatchTable Global — App Push Plan</h1>
-  <p>앱푸시 유형 분류 및 연간 발송 플랜</p>
+  <p>시스템 푸시 외 마케팅 푸시 케이스 정리 · 언어는 국가별 분기</p>
 </div>
 
 <div class="container">
 
-  <!-- 마케팅 푸시 유형 -->
+  <!-- 행동 기반 케이스 -->
   <div class="section">
     <div class="section-header">
       <div>
-        <div class="section-title">마케팅 푸시 유형</div>
-        <div class="section-desc">전체 발송 가능 · 세그먼트 불필요</div>
+        <div class="section-title">행동 기반 케이스</div>
+        <div class="section-desc">유저 액션을 트리거로 발송</div>
       </div>
       <div class="btn-group">
-        <button class="btn" onclick="toggleEdit('mkt-types')">수정</button>
-        <button class="btn" onclick="downloadCSV('mkt-types', '마케팅_푸시_유형')">CSV 다운로드</button>
+        <button class="btn" onclick="toggleEdit('behavior-cases')">수정</button>
+        <button class="btn" onclick="downloadCSV('behavior-cases', '행동_기반_케이스')">CSV 다운로드</button>
       </div>
     </div>
-    <table class="data-table" id="mkt-types"></table>
+    <table class="data-table" id="behavior-cases"></table>
+  </div>
+
+  <!-- 운영 기반 케이스 -->
+  <div class="section">
+    <div class="section-header">
+      <div>
+        <div class="section-title">운영 기반 케이스</div>
+        <div class="section-desc">우리가 진행하는 기획·업데이트 시 발송 (수동)</div>
+      </div>
+      <div class="btn-group">
+        <button class="btn" onclick="toggleEdit('ops-cases')">수정</button>
+        <button class="btn" onclick="downloadCSV('ops-cases', '운영_기반_케이스')">CSV 다운로드</button>
+      </div>
+    </div>
+    <table class="data-table" id="ops-cases"></table>
+  </div>
+
+  <!-- 국가별 1회성 케이스 -->
+  <div class="section">
+    <div class="section-header">
+      <div>
+        <div class="section-title">국가별 케이스 (옵셔널)</div>
+        <div class="section-desc">국가별 이벤트·시즌에 맞춰 1회성 발송</div>
+      </div>
+      <div class="btn-group">
+        <button class="btn" onclick="toggleEdit('country-cases')">수정</button>
+        <button class="btn" onclick="downloadCSV('country-cases', '국가별_케이스')">CSV 다운로드</button>
+      </div>
+    </div>
+    <table class="data-table" id="country-cases"></table>
   </div>
 
   <!-- 마케팅 푸시 팁 -->
@@ -195,21 +184,6 @@
     <div class="tip-grid" id="marketing-tips"></div>
   </div>
 
-  <!-- 월별 플랜 -->
-  <div class="section">
-    <div class="section-header">
-      <div>
-        <div class="section-title">월별 앱푸시 플랜</div>
-        <div class="section-desc">주 1회 발송 · 연 48건</div>
-      </div>
-      <div class="btn-group">
-        <button class="btn" onclick="toggleEdit('monthly-plan')">수정</button>
-        <button class="btn" onclick="addRow('monthly-plan')">행 추가</button>
-        <button class="btn" onclick="downloadCSV('monthly-plan', '월별_앱푸시_플랜')">CSV 다운로드</button>
-      </div>
-    </div>
-    <table class="data-table" id="monthly-plan"></table>
-  </div>
 
 </div>
 
@@ -218,14 +192,37 @@
 <script>
 // ── DATA ──
 const DATA = {
-  marketingTypes: {
-    headers: ['유형', '설명', '예시', '전체 발송 적합도', '비고'],
+  behaviorCases: {
+    headers: ['케이스', '트리거 조건', '푸시 내용 (예시)', '랜딩', '비고'],
     rows: [
-      ['시즌/시의성 콘텐츠', '모든 유저에게 해당되는 시즌 큐레이션', '벚꽃 시즌 맛집 / 크리스마스 다이닝 / 한국 공휴일 가이드', '높음', ''],
-      ['인기/트렌드 기반 큐레이션', '전체 유저 데이터 기반 인기 콘텐츠', '주간 인기 레스토랑 / 지역별 트렌드 / 카테고리별 인기', '높음', '세그먼트 불필요'],
-      ['신규 입점·신규 기능 알림', '새 레스토랑 또는 기능 안내', '신규 입점 소식 / 새 기능 출시 / 앱 업데이트', '높음', ''],
-      ['프로모션/이벤트', '전체 대상 혜택 안내', '쿠폰·할인 이벤트 / 첫 예약 혜택 / 친구 초대 캠페인', '높음', ''],
-      ['리인게이지먼트 (재방문 유도)', '휴면 유저 재방문 유도', '신규 레스토랑 안내 / 업데이트 알림', '보통', '세그먼트 없으면 활성 유저에겐 어색할 수 있음'],
+      ['앱 설치 후 미탐색', '가입 후 매장 조회 0건', '서울에서 가장 핫한 레스토랑, 지금 확인해보세요', '큐레이션 리스트', '첫 탐색 유도'],
+      ['매장 조회 후 이탈', '매장 상세 조회 후 예약 미진행', '아직 고민 중이신가요? {매장명} 예약 가능 좌석이 줄어들고 있어요', '해당 매장 상세', '희소성 소구'],
+      ['예약 폼 이탈', '예약 폼 진입 후 예약 미완료', '{매장명} 예약을 마저 완료하세요', '예약 폼', '전환 넛지'],
+      ['첫 예약 완료', '생애 첫 예약 완료', '{매장명} 근처 인기 레스토랑도 확인해보세요', '유사 매장 리스트', '추가 예약 유도'],
+      ['예약 완료 (재방문)', '2회 이상 예약 완료', '{매장명} 방문 전, 근처 다른 맛집도 둘러보세요', '주변 매장 리스트', ''],
+      ['방문 완료 후', '방문 완료 (리뷰 외)', '다음 예약은 어디로? 비슷한 스타일의 매장을 추천드려요', '추천 매장 리스트', '재예약 유도'],
+      ['즐겨찾기 매장 변동', '즐겨찾기한 매장에 빈자리/신메뉴 등', '{매장명}에 새 예약 가능 시간이 열렸어요', '매장 상세', '관심 매장 넛지'],
+      ['웨이팅 이용 후', '웨이팅 이용 완료', '{매장명}이 마음에 드셨다면, 다음엔 예약으로 더 편하게', '매장 상세 (예약)', '예약 전환 유도'],
+      ['장기 미접속', '30일+ 앱 미접속', '그동안 새로 입점한 인기 매장을 확인해보세요', '큐레이션 리스트', '휴면 복귀'],
+    ]
+  },
+  opsCases: {
+    headers: ['케이스', '발송 조건', '대상', '푸시 내용 (예시)', '랜딩', '비고'],
+    rows: [
+      ['기획전 오픈', '기획전 페이지 라이브 시', '전체 유저', '새로운 기획전이 시작됐어요! 지금 확인해보세요', '기획전 페이지', ''],
+      ['신규 매장 입점', '신규 매장 입점 시', '전체 유저', '새로운 레스토랑이 캐치테이블에 들어왔어요', '신규 매장 리스트', ''],
+      ['제휴 프로모션', '제휴 광고·캠페인 진행 시', '전체 유저', '{제휴사} x CatchTable 특별 혜택', '프로모션 페이지', ''],
+      ['앱 업데이트·신기능', '주요 기능 출시 시', '전체 유저', '새로운 기능이 추가됐어요! 지금 업데이트하세요', '앱스토어 or 신기능 안내', ''],
+      ['인기 매장 큐레이션', '주간/월간 정기 발송', '전체 유저', '이번 주 가장 인기 있는 레스토랑', '인기 매장 리스트', '정기'],
+    ]
+  },
+  countryCases: {
+    headers: ['대상 국가', '이벤트', '시기', '푸시 내용 (예시)', '랜딩', '비고'],
+    rows: [
+      ['일본 (JP)', '골든위크', '4월 말~5월 초', 'GWに韓国グルメを楽しもう！人気レストランをチェック', '큐레이션 리스트', ''],
+      ['중국 (CN)', '춘절 (春节)', '1~2월', '春节来韩国，这些餐厅不容错过', '큐레이션 리스트', ''],
+      ['중화권 (CN/TW/HK)', '국경절/쌍십절', '10월 초', '국경절 연휴 한국 맛집 추천', '큐레이션 리스트', ''],
+      ['대만 (TW)', '설 연휴', '1~2월', '한국 인기 맛집 미리 예약하세요', '큐레이션 리스트', ''],
     ]
   },
   marketingTips: [
@@ -234,93 +231,19 @@ const DATA = {
     ['시간대', '글로벌 유저 = 한국 거주 기준 점심 전(11시)이나 저녁 전(17시)이 효과적'],
     ['CTA 명확히', 'Book now / See the list 등 행동 유도 포함'],
   ],
-  monthlyPlan: {
-    headers: ['월', '유형', '소재 방향', '비고'],
-    rows: [
-      ['3월', '시즌', '벚꽃 시즌 다이닝', '봄 시작'],
-      ['3월', '트렌드', '주간 인기 레스토랑', '예약 데이터 기반'],
-      ['3월', '신규', '신규 입점 레스토랑', '월간 신규'],
-      ['3월', '트렌드', '지역별 인기 (강남)', '지역 트렌드'],
-      ['4월', '시즌', '야외/루프탑 다이닝', '봄 날씨'],
-      ['4월', '트렌드', '카테고리별 인기 (한식BBQ 등)', '카테고리 트렌드'],
-      ['4월', '프로모션', '첫 예약 혜택 리마인드', '신규 유저 전환'],
-      ['4월', '트렌드', '지역별 인기 (이태원)', '지역 트렌드'],
-      ['5월', '시즌', '골든위크 맛집', '일본 관광객 시즌'],
-      ['5월', '트렌드', '주간 인기 레스토랑', '예약 데이터 기반'],
-      ['5월', '신규', '신규 입점 레스토랑', '월간 신규'],
-      ['5월', '시즌', '가정의 달 다이닝', '어버이날/어린이날'],
-      ['6월', '시즌', '장마 시즌 맛집', '장마철'],
-      ['6월', '트렌드', '월간 인기 레스토랑', '예약 데이터 기반'],
-      ['6월', '트렌드', '지역별 인기 (홍대)', '지역 트렌드'],
-      ['6월', '신규', '신규 입점 레스토랑', '월간 신규'],
-      ['7월', '시즌', '여름 시즌 메뉴', '냉면/빙수 등'],
-      ['7월', '트렌드', '주간 인기 레스토랑', '예약 데이터 기반'],
-      ['7월', '시즌', '여름 밤 다이닝', '루프탑/심야'],
-      ['7월', '프로모션', '여름 특별 이벤트', '시즌 프로모션'],
-      ['8월', '시즌', '휴가 시즌 다이닝', '여름휴가'],
-      ['8월', '트렌드', '지역별 인기 (성수)', '지역 트렌드'],
-      ['8월', '신규', '신규 입점 레스토랑', '월간 신규'],
-      ['8월', '트렌드', '월간 인기 레스토랑', '예약 데이터 기반'],
-      ['9월', '시즌', '추석 연휴 다이닝', '추석'],
-      ['9월', '트렌드', '가을 시즌 전환 메뉴', '시즌 전환'],
-      ['9월', '트렌드', '주간 인기 레스토랑', '예약 데이터 기반'],
-      ['9월', '신규', '신규 입점 레스토랑', '월간 신규'],
-      ['10월', '시즌', '가을 미식 페스티벌', '가을 제철'],
-      ['10월', '트렌드', '주간 인기 레스토랑', '예약 데이터 기반'],
-      ['10월', '트렌드', '지역별 인기 (강남)', '지역 트렌드'],
-      ['10월', '프로모션', '친구 초대 캠페인', '바이럴'],
-      ['11월', '시즌', '겨울 따뜻한 메뉴', '탕/전골 등'],
-      ['11월', '트렌드', '월간 인기 레스토랑', '예약 데이터 기반'],
-      ['11월', '신규', '신규 입점 레스토랑', '월간 신규'],
-      ['11월', '시즌', '연말 예약 오픈 안내', '얼리버드'],
-      ['12월', '시즌', '크리스마스 다이닝', '크리스마스'],
-      ['12월', '트렌드', '주간 인기 레스토랑', '예약 데이터 기반'],
-      ['12월', '시즌', '연말 송년 모임 맛집', '연말'],
-      ['12월', '트렌드', '연간 인기 정리', '연말 리뷰'],
-      ['1월', '시즌', '신년 다이닝', '새해'],
-      ['1월', '트렌드', '겨울 인기 메뉴', '겨울 트렌드'],
-      ['1월', '신규', '신규 입점 레스토랑', '월간 신규'],
-      ['1월', '트렌드', '주간 인기 레스토랑', '예약 데이터 기반'],
-      ['2월', '시즌', '발렌타인 데이트', '발렌타인'],
-      ['2월', '트렌드', '월간 인기 레스토랑', '예약 데이터 기반'],
-      ['2월', '신규', '신규 입점 레스토랑', '월간 신규'],
-      ['2월', '프로모션', '봄 시즌 예고 이벤트', '시즌 전환'],
-    ]
-  },
 };
-
-// ── BADGE ──
-const BADGE_MAP = {
-  '시즌/시의성 콘텐츠': 'badge-season', '시즌': 'badge-season',
-  '인기/트렌드 기반 큐레이션': 'badge-trend', '트렌드': 'badge-trend',
-  '신규 입점·신규 기능 알림': 'badge-new', '신규': 'badge-new',
-  '프로모션/이벤트': 'badge-promo', '프로모션': 'badge-promo',
-  '리인게이지먼트 (재방문 유도)': 'badge-engage',
-};
-function badge(t) { return `<span class="badge ${BADGE_MAP[t]||''}">${t}</span>`; }
-
-// ── PLAN TYPE OPTIONS (for select dropdown) ──
-const PLAN_TYPES = ['시즌', '트렌드', '신규', '프로모션'];
 
 // ── RENDER ──
-function renderTable(id, data, opts = {}) {
+function renderTable(id, data) {
   const table = document.getElementById(id);
-  const { monthGroup } = opts;
   let html = '<thead><tr>';
   data.headers.forEach(h => { html += `<th>${h}</th>`; });
   html += '</tr></thead><tbody>';
 
-  let prevMonth = '';
   data.rows.forEach((r, ri) => {
-    if (monthGroup && r[0] !== prevMonth && r[0]) {
-      html += `<tr class="month-group"><td colspan="${data.headers.length}">${r[0]}</td></tr>`;
-      prevMonth = r[0];
-    }
     html += `<tr data-row="${ri}">`;
     r.forEach((c, ci) => {
-      if (ci === 0 && monthGroup) html += `<td data-col="${ci}">${c}</td>`;
-      else if ((ci === 0 && !monthGroup) || (ci === 1 && monthGroup)) html += `<td data-col="${ci}">${badge(c)}</td>`;
-      else html += `<td data-col="${ci}">${c}</td>`;
+      html += `<td data-col="${ci}">${c}</td>`;
     });
     html += '</tr>';
   });
@@ -339,125 +262,46 @@ const editStates = {};
 function toggleEdit(id) {
   const table = document.getElementById(id);
   const isEditing = editStates[id];
-  const dataKey = { 'mkt-types': 'marketingTypes', 'monthly-plan': 'monthlyPlan',  }[id];
+  const dataKey = { 'behavior-cases': 'behaviorCases', 'ops-cases': 'opsCases', 'country-cases': 'countryCases' }[id];
   const data = DATA[dataKey];
-  const isMonthly = id === 'monthly-plan';
 
   if (isEditing) {
-    // Save: read from DOM back to DATA
     const tbody = table.querySelector('tbody');
-    const dataRows = tbody.querySelectorAll('tr:not(.month-group)');
+    const dataRows = tbody.querySelectorAll('tr');
     dataRows.forEach((tr, ri) => {
       tr.querySelectorAll('td').forEach(td => {
         const ci = parseInt(td.dataset.col);
         if (ci === undefined || isNaN(ci)) return;
-        const select = td.querySelector('select');
-        if (select) {
-          data.rows[ri][ci] = select.value;
-        } else {
-          data.rows[ri][ci] = td.textContent.trim();
-        }
+        data.rows[ri][ci] = td.textContent.trim();
       });
-      // remove action column
-      const actionTd = tr.querySelector('.row-actions');
-      if (actionTd) actionTd.remove();
     });
-    // Re-render
-    renderTable(id, data, { monthGroup: isMonthly });
+    renderTable(id, data);
     table.classList.remove('editing');
     editStates[id] = false;
     showToast('저장 완료');
   } else {
-    // Enter edit mode
     table.classList.add('editing');
     const tbody = table.querySelector('tbody');
-    const dataRows = tbody.querySelectorAll('tr:not(.month-group)');
-    // Add action header
-    const thead = table.querySelector('thead tr');
-    const actionTh = document.createElement('th');
-    actionTh.textContent = '';
-    actionTh.style.width = '40px';
-    thead.appendChild(actionTh);
-
-    dataRows.forEach((tr, ri) => {
+    const dataRows = tbody.querySelectorAll('tr');
+    dataRows.forEach((tr) => {
       tr.querySelectorAll('td').forEach(td => {
-        const ci = parseInt(td.dataset.col);
-        if (ci === undefined || isNaN(ci)) return;
-        // Type column: dropdown
-        const isTypeCol = (isMonthly && ci === 1) || (!isMonthly && ci === 0);
-        if (isTypeCol && isMonthly) {
-          const cur = data.rows[ri][ci];
-          td.innerHTML = `<select class="type-select" data-col="${ci}">${PLAN_TYPES.map(t => `<option${t===cur?' selected':''}>${t}</option>`).join('')}</select>`;
-        } else {
-          td.contentEditable = 'true';
-          // Remove badge wrapper for display
-          const badgeEl = td.querySelector('.badge');
-          if (badgeEl) td.textContent = badgeEl.textContent;
-        }
+        td.contentEditable = 'true';
+        const badgeEl = td.querySelector('.badge');
+        if (badgeEl) td.textContent = badgeEl.textContent;
       });
-      // Add delete button
-      const actionTd = document.createElement('td');
-      actionTd.className = 'row-actions';
-      actionTd.innerHTML = `<button onclick="deleteRow('${id}', ${ri})" title="삭제">✕</button>`;
-      tr.appendChild(actionTd);
     });
     editStates[id] = true;
     showToast('수정 모드 — 셀을 클릭해서 편집하세요');
   }
 
-  // Update button text
   const btn = table.closest('.section').querySelector('.btn');
   btn.textContent = editStates[id] ? '저장' : '수정';
   if (editStates[id]) { btn.classList.add('btn-primary'); } else { btn.classList.remove('btn-primary'); }
 }
 
-function deleteRow(id, rowIndex) {
-  const dataKey = { 'mkt-types': 'marketingTypes', 'monthly-plan': 'monthlyPlan',  }[id];
-  const data = DATA[dataKey];
-  const isMonthly = id === 'monthly-plan';
-
-  // First save current edits
-  const table = document.getElementById(id);
-  const tbody = table.querySelector('tbody');
-  const dataRows = tbody.querySelectorAll('tr:not(.month-group)');
-  dataRows.forEach((tr, ri) => {
-    tr.querySelectorAll('td').forEach(td => {
-      const ci = parseInt(td.dataset.col);
-      if (ci === undefined || isNaN(ci)) return;
-      const select = td.querySelector('select');
-      if (select) data.rows[ri][ci] = select.value;
-      else if (td.contentEditable === 'true') data.rows[ri][ci] = td.textContent.trim();
-    });
-  });
-
-  data.rows.splice(rowIndex, 1);
-  editStates[id] = false;
-  renderTable(id, data, { monthGroup: isMonthly });
-  // Re-enter edit mode
-  toggleEdit(id);
-  showToast('행 삭제됨');
-}
-
-function addRow(id) {
-  const dataKey = { 'monthly-plan': 'monthlyPlan' }[id];
-  if (!dataKey) return;
-  const data = DATA[dataKey];
-  const isMonthly = id === 'monthly-plan';
-
-  // If in edit mode, save first
-  if (editStates[id]) {
-    toggleEdit(id); // save
-  }
-
-  data.rows.push(['', '시즌', '', '']);
-  renderTable(id, data, { monthGroup: isMonthly });
-  toggleEdit(id); // enter edit mode
-  showToast('새 행 추가됨 — 내용을 입력하세요');
-}
-
 // ── CSV DOWNLOAD ──
 function downloadCSV(id, filename) {
-  const dataKey = { 'mkt-types': 'marketingTypes', 'monthly-plan': 'monthlyPlan',  }[id];
+  const dataKey = { 'behavior-cases': 'behaviorCases', 'ops-cases': 'opsCases', 'country-cases': 'countryCases' }[id];
   const data = DATA[dataKey];
   let csv = data.headers.map(h => `"${h}"`).join(',') + '\n';
   data.rows.forEach(r => {
@@ -481,9 +325,10 @@ function showToast(msg) {
 }
 
 // ── INIT ──
-renderTable('mkt-types', DATA.marketingTypes);
+renderTable('behavior-cases', DATA.behaviorCases);
+renderTable('ops-cases', DATA.opsCases);
+renderTable('country-cases', DATA.countryCases);
 renderTips('marketing-tips', DATA.marketingTips);
-renderTable('monthly-plan', DATA.monthlyPlan, { monthGroup: true });
 </script>
 
 </body>
